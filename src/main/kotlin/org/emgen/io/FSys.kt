@@ -6,6 +6,10 @@ import java.math.MathContext
 
 object FSys {
 
+    private val FILE_PATH_SEPARATOR = File.separator
+    private const val FILE_EXTENSION_SEPARATOR = '.'
+    private const val FILE_COPY_POSTFIX = "copy"
+
     fun File.name(extension: Boolean = true): String {
         val name = this.name
         val extensionSeparatorIndex = name.lastIndexOf('.')
@@ -66,7 +70,7 @@ object FSys {
         require(!name.trim().isEmpty()) { "Argument \"name\" cannot be empty" }
         require(this.exists()) { "\"${this.toPath()}\" could not be found" }
 
-        val target = File("${this.parent}${File.separator}$name")
+        val target = File(joinToURI(this.parent, name))
 
         if (target.exists()) {
             throw IllegalArgumentException("Cannot rename to \"$name\" - \"${target.toPath()}\" exists")
@@ -78,4 +82,62 @@ object FSys {
             throw RuntimeException("\"${this.toPath()}\" could not be renamed to \"${target}\"")
         }
     }
+
+    /**
+     * Copies source {@link File} to destination directory. In case it's a directory, it's contents are copied too.
+     *
+     * @param destination - absolute path to destination directory. In case it's not provided,
+     * parent directory of source {@link File} is used.
+     * @param name - copied {@link File}'s name. In case it's not provided, name is going to be generated using patterns:
+     * <ul>
+     *     <li>[name].[extension]</li>
+     *     <li>[name] copy.[extension]</li>
+     *     <li>[name] copy ([copy_index]).[extension]</li>
+     * </ul>
+     *
+     * @return copied {@link File}
+     *
+     * @throws IllegalArgumentException in case source {@link File} does not exist, provided {@param destination}
+     * could not be found or provided {@param name} points to existing {@link File}.
+     */
+    fun File.copyAs(destination: String? = null, name: String? = null): File {
+        require(this.exists()) { "\"${this.toPath()}\" could not be found" }
+
+        val destination = destination ?: this.parent
+        val directory = File(destination)
+
+        if (!directory.exists()) {
+            throw IllegalArgumentException("\"$destination\" destination directory could not be found")
+        }
+
+        if (name != null && File(joinToURI(destination, name)).exists()) {
+            throw IllegalArgumentException("Could not copy - \"${joinToURI(destination, name)}\" exists")
+        }
+
+        val names = directory.contents().map { it.name }
+        var name = name ?: this.name
+
+        for (n in 0..1_000_000) {
+            if (name in names) {
+                val copyIndex = FILE_COPY_POSTFIX + (if (n > 1) " ($n)" else "")
+                name = "${this.name(false)} $copyIndex${if (this.isDirectory) "" else "$FILE_EXTENSION_SEPARATOR${this.extension}"}"
+            } else {
+                break
+            }
+        }
+
+        val target = File(joinToURI(destination, name))
+
+        if (this.isDirectory) {
+            this.copyRecursively(target)
+        } else {
+            this.copyTo(target)
+        }
+
+        return target
+    }
+
+    private fun joinToURI(vararg parts: String): String = parts
+        .joinToString(FILE_PATH_SEPARATOR, FILE_PATH_SEPARATOR)
+        .replace(Regex("$FILE_PATH_SEPARATOR{2,}"), FILE_PATH_SEPARATOR)
 }
