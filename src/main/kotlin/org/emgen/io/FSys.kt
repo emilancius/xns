@@ -3,6 +3,7 @@ package org.emgen.io
 import java.io.File
 import java.math.BigDecimal
 import java.math.MathContext
+import java.nio.file.Files
 
 object FSys {
 
@@ -145,6 +146,19 @@ object FSys {
         val copy = this.copyAs(destination = destination.toPath().toString())
         this.remove()
         return copy
+    }
+
+    fun File.create(directory: Boolean = true): Boolean {
+        val parent = this.toPath().parent
+        require(Files.exists(parent)) { "\"parent\" directory does not exist" }
+        require(!this.exists()) { "Could not create - \"${this.toPath()}\" exists" }
+
+        return if (directory) {
+            this.mkdir()
+        } else {
+            this.writeBytes(ByteArray(0))
+            this.exists()
+        }
     }
 
     private fun joinToURI(vararg parts: String): String = parts

@@ -4,6 +4,7 @@ import org.emgen.Resources
 import org.emgen.io.FSys.clear
 import org.emgen.io.FSys.contents
 import org.emgen.io.FSys.copyAs
+import org.emgen.io.FSys.create
 import org.emgen.io.FSys.move
 import org.emgen.io.FSys.name
 import org.emgen.io.FSys.remove
@@ -367,6 +368,44 @@ class FSysSpec {
         assertTrue { res.exists() }
         assertTrue { !resource.exists() }
         assertEquals("FILE.txt", res.name)
+    }
+
+    @Test
+    fun `create() produces {@link IllegalArgumentException} in case parent directory does not exist`() {
+        assertThrows<IllegalArgumentException> {
+            File(resources.createResourceURI("resources", "FILE.txt")).create()
+        }
+    }
+
+    @Test
+    fun `create() produces {@link IllegalArgumentException} in case source {@link File} exists`() {
+        val resource = resources.createResource(
+            path = resources.createResourceURI("resources", "FILE.txt"),
+            directory = false
+        )
+
+        assertThrows<IllegalArgumentException> {
+            resource.create(directory = false)
+        }
+    }
+
+    @Test
+    fun `create() creates directory and returns true`() {
+        val directory = resources.createResource(resources.createResourceURI("resources"))
+        val resource = File(resources.createResourceURI(directory.toPath().toString(), "DIRECTORY"))
+
+        assertTrue { resource.create() }
+        assertTrue { resource.isDirectory }
+    }
+
+    @Test
+    fun `create() creates {@link File} and returns true`() {
+        val directory = resources.createResource(resources.createResourceURI("resources"))
+        val resource = File(resources.createResourceURI(directory.toPath().toString(), "FILE.txt"))
+
+        assertTrue { resource.create(directory = false) }
+        assertTrue { resource.isFile }
+        assertEquals(0, resource.length())
     }
 
     private fun cleanSpecResources() {
