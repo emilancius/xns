@@ -4,6 +4,7 @@ import org.emgen.Resources
 import org.emgen.io.FSys.clear
 import org.emgen.io.FSys.contents
 import org.emgen.io.FSys.copyAs
+import org.emgen.io.FSys.move
 import org.emgen.io.FSys.name
 import org.emgen.io.FSys.remove
 import org.emgen.io.FSys.rename
@@ -331,6 +332,41 @@ class FSysSpec {
         assertTrue { copy.exists() }
         assertEquals("DIRECTORY copy", copy.name)
         assertEquals(1, copy.list()?.size)
+    }
+
+    @Test
+    fun `move() produces {@link IllegalArgumentException} in case source {@link File} does not exist`(){
+        assertThrows<IllegalArgumentException> {
+            File(resources.createResourceURI("resources", "FILE.txt"))
+                .move(File(resources.createResourceURI("resources", "DIRECTORY")))
+        }
+    }
+
+    @Test
+    fun `move() produces {@link IllegalArgumentException} in case destination directory does not exist`(){
+        val resource = resources.createResource(
+            path = resources.createResourceURI("resources", "FILE.txt"),
+            directory = false
+        )
+
+        assertThrows<IllegalArgumentException> {
+            resource.move(File(resources.createResourceURI("resources", "DIRECTORY")))
+        }
+    }
+
+    @Test
+    fun `move() moves {@link File} to destination directory and returns moved {@link File}`() {
+        val resource = resources.createResource(
+            path = resources.createResourceURI("resources", "FILE.txt"),
+            directory = false
+        )
+        val directory = resources.createResource(resources.createResourceURI("resources", "DIRECTORY"))
+
+        val res = resource.move(directory)
+
+        assertTrue { res.exists() }
+        assertTrue { !resource.exists() }
+        assertEquals("FILE.txt", res.name)
     }
 
     private fun cleanSpecResources() {

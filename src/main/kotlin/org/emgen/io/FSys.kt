@@ -120,7 +120,8 @@ object FSys {
         for (n in 0..1_000_000) {
             if (name in names) {
                 val copyIndex = FILE_COPY_POSTFIX + (if (n > 1) " ($n)" else "")
-                name = "${this.name(false)} $copyIndex${if (this.isDirectory) "" else "$FILE_EXTENSION_SEPARATOR${this.extension}"}"
+                name =
+                    "${this.name(false)} $copyIndex${if (this.isDirectory) "" else "$FILE_EXTENSION_SEPARATOR${this.extension}"}"
             } else {
                 break
             }
@@ -135,6 +136,15 @@ object FSys {
         }
 
         return target
+    }
+
+    fun File.move(destination: File): File {
+        require(this.exists()) { "\"${this.toPath()}\" does not exist" }
+        require(destination.exists()) { "\"${destination.toPath()}\" destination directory does not exist" }
+
+        val copy = this.copyAs(destination = destination.toPath().toString())
+        this.remove()
+        return copy
     }
 
     private fun joinToURI(vararg parts: String): String = parts
