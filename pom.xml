@@ -9,6 +9,13 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>xns</name>
+    <distributionManagement>
+        <repository>
+            <id>xns</id>
+            <name>xns packages</name>
+            <url>https://maven.pkg.github.com/emilancius/xns</url>
+        </repository>
+    </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.4.0</kotlin.version>
