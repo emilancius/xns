@@ -18,6 +18,7 @@
         <junit.version>5.7.0-RC1</junit.version>
         <mockito.version>3.5.2</mockito.version>
         <maven.surefire.version>3.0.0-M5</maven.surefire.version>
+        <maven.shade.version>3.2.4</maven.shade.version>
         <jacoco.version>0.8.5</jacoco.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -146,6 +147,19 @@
                                 </rule>
                             </rules>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven.shade.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
